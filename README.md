@@ -1,4 +1,5 @@
-Welcome to the Kepler model analysis routine
+<b>Welcome to the Kepler model analysis routine</b>
+
 Author: Nathanael Lampe
 
 What is it?
