@@ -3,6 +3,8 @@ Welcome to the Kepler model analysis routine
 
 Author: Nathanael Lampe
 
+Note: This is currently a work in progress
+
 What is it?
 
 KEPLER is a 1-D hydrodynamics code that is used to simulate type 1
@@ -15,7 +17,13 @@ properties for each burst.
 
 How do I use it?
 
-
+This script requires three inputs. A master file containing the initial
+conditions of each run, a directory containing the ASCII formatted
+bursts the master initial conditions file refers to, and the desired 
+output directory. The format of the initial conditions file and the 
+ascii file are described below. Ideally, the output directory should
+be empty to avoid any accidental file overwrites (As yet, I haven't
+implemented an automatic overwrite prevention).
 
 Prerequisites?
 
