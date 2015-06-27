@@ -288,118 +288,6 @@ def burstFits(mt,ml,pt,mdl=None):
 
 
   eParams, eData = fitTail(tFit, lFit, dlFit, p, method = 'exp1')
-  '''
-  OLD METHOD (Following In't Zand)
-  #Power Law
-  ts1 = 3
-  ts2 = ts1+1
-
-  sInd1 = bn.nanargmax(t>ts1) #start 3s after peak
-  ts1 = t[sInd1]
-  sInd2 = bn.nanargmax(t>ts2)
-  ts2 = t[sInd2]
-  endIndex = bn.nanargmax(l<10*persLum) #end when lum gets to
-                                            #same order as persistent
-  if endIndex == 0: endIndex = len(l) - 1 #in case it never gets there
-
-
-  t1 = t[sInd1:endIndex]
-  l1 = l[sInd1:endIndex]
-  dl1 = dl[sInd1:endIndex]
-
-  t2 = t[sInd2:endIndex]
-  l2 = l[sInd2:endIndex]
-  dl2 = dl[sInd2:endIndex]
-
-  p = Parameters()
-
-  p.add('F0', value = 1., vary = True)
-  p.add('t0', value = ts1, vary = False)
-  p.add('ts', value = -1, vary = True, min = -10, max = ts1)
-  p.add('al', value = 1.4, vary = True, min = 0)
-  p.add('Fp', value = persLum, vary = False, min = 0., max = 1.)
-
-
-  p1, data1 = fitTail(t1, l1, dl1, p, method = 'power')
-  p['ts'].max = 0.999*ts2       
-  p['t0'].value = ts2
-  p2, data2 = fitTail(t2, l2, dl2, p, method = 'power')
-
-  while data2['redchi'] < data1['redchi'] or data2['redchi'] >= 5.:  
-
-    ts2 += 1
-    if ts2 - max(t) < 5.0: break #fit to at least 5s
-    data1 = data2
-    p1 = p2
-
-    sInd2 = bn.nanargmax(t>ts2)
-    ts2 = t[sInd2]
-    t2 = t[sInd2:endIndex]
-    if len(t2)<6: break
-    l2 = l[sInd2:endIndex]
-    dl2 = dl[sInd2:endIndex]
-    p['ts'].max = 0.999*ts2
-    p['t0'].value = ts2
-    p2, data2 = fitTail(t2, l2, dl2, p, method = 'power')
-
-  pParams=p1
-  pData = data1
-  
-  #~~~ Single Tail Exponential ~~~#
-        
-  ts1 = 3
-  ts2 = ts1+1
-
-  sInd1 = bn.nanargmax(t>ts1) #start 3s after peak
-  ts1 = t[sInd1]
-  sInd2 = bn.nanargmax(t>ts2)
-  ts2 = t[sInd2]
-  endIndex = bn.nanargmax(l<10*persLum) #end when lum gets to
-                                            #same order as persistent
-  if endIndex == 0: endIndex = len(l) - 1 #in case it never gets there
-
-
-  t1 = t[sInd1:endIndex]
-  l1 = l[sInd1:endIndex]
-  dl1 = dl[sInd1:endIndex]
-
-  t2 = t[sInd2:endIndex]
-  l2 = l[sInd2:endIndex]
-  dl2 = dl[sInd2:endIndex]
-
-  p = Parameters()
-
-  p.add('F0', value = 1., vary = True)
-  p.add('t0', value = ts1, vary = False)
-  p.add('tau', value = 10, vary = True, min = 0)
-  p.add('Fp', value = persLum, vary = False, min = 0., max =1.)
-
-
-  p1, data1 = fitTail(t1, l1, dl1, p, method = 'exp1')
-  
-  p['t0'].value = ts2
-  p2, data2 = fitTail(t2, l2, dl2, p, method = 'exp1')
-
-  while data2['redchi'] < data1['redchi'] or data2['redchi'] >= 5.:
-
-    ts2 += 1
-    if ts2 - max(t) < 5.0: break #fit to at least 5s
-    data1 = data2
-    p1 = p2
-
-    sInd2 = bn.nanargmax(t>ts2)
-    ts2 = t[sInd2]
-    t2 = t[sInd2:endIndex]
-    if len(t2)<6: break
-    l2 = l[sInd2:endIndex]
-    dl2 = dl[sInd2:endIndex]
-
-    p['t0'].value = ts2
-    p2, data2 = fitTail(t2, l2, dl2, p, method = 'exp1')
-    
-  eParams = p1
-  eData = data1
-  '''
 
   #rescale back
   pParams['F0'].value  *= peakLum
@@ -1095,24 +983,6 @@ def separate(burstTime, burstLum, burstRad, modelID, outputDirectory):
   lum = np.asarray(burstLum, dtype=np.float64)
   rad = np.asarray(burstRad, dtype=np.float64)
   minFlux = 1.e36
-  '''
-  DEPRECATED: NO REDSHIFTING FOR NOW
-  #REDSHIFTING
-  # Following Keek (2011) - arxiv:1110.2172 - We use the redshift scaling constants:
-  # This is for a r=10km, 1.4Msun Netron Star
-  print '<separate>: redshifting burst'
-  z = 0.25835
-  xi = 1.12176
-  zeta = 0.206666
-  phi = 1.
-  
-  
-  tim *= (1.+z)
-  lum *= (xi^2./(1.+z)**2.)
-  rad *= (xi*(1.+z))
-
-  #END REDSHIFTING
-  '''
 
   #ANALYSIS
   
@@ -1333,18 +1203,49 @@ def separate(burstTime, burstLum, burstRad, modelID, outputDirectory):
 ###############################################################################
 
 
-def analysis(keyTable, modelDir, outputDir, notAnalysable = [], twinPeaks = [], stableTrans = []):
+def analysis(keyTable, modelDir, outputDir, notAnalysable = [], twinPeaks = [],
+  stableTrans = []):
   '''
-  analysis(keyTable, modelDir, outputDir,  notAnalysable = [], twinPeaks = [], stableTrans = []):
+  Routine to analyse open each burst train, call the separator, and create 
+  output files
   
+  analysis(keyTable, modelDir, outputDir,  notAnalysable = [], twinPeaks = [],
+    stableTrans = []):
+  ====================
+  args:
+  -----
+  keytable  : numpy 2darray, table with initial conditions (note 1)
+  modelDir  : string, directory containing each burst as an ASCII file
+  outputDir : string, directory to save each burst
   
+  kwargs:
+  -----
   
+  notAnalysable : List of strings, Models contained will be skipped 
+  twinPeaks     : List of strings, Model listed  be flagged as twin peaked burst
+  stableTrans   : List of strings, Use this if a transition to stable burning
+                  leads to analysis difficulties
+                  
+  returns:
+  -----
+  list : internal representation of model summary values
+  list : internal representation of individual burst values
   
-  #This program will analyse all the rebinned data files to produce a database of
-  #tau,tdel,pflux and fluence values
-  #It will also produce a mean lightcurve for each source 
-  #
-  #Jul 2012 - added code to redshift Lacc/Ledd
+  ==============================================================================
+  Notes:
+  (1) On the structure of the keyTable array
+    Here is where we read in the initial conditions table. I use numpy's 
+    genfromtxt routine, specifying the columns where new data starts
+    You may change this as you see fit, the important thing is that the
+    table contains named columns with the following names:
+      name : model filename without .data extension
+      acc  : accretion rate
+      z    : metallicity
+      h    : hydrogen fraction
+      pul  : comment line describing the lightcurve (may be empty, must exist)
+           : The comments on this line will be printed in the output table
+      cyc  : Number of numerical steps simulated 
+      comm : area for comments
   '''
   #convert keywords to their variable names
   modelDirectory = modelDir
@@ -1363,33 +1264,8 @@ def analysis(keyTable, modelDir, outputDir, notAnalysable = [], twinPeaks = [], 
   cyc = init['cyc']
   comm = np.array(map(strip, init['comm']))
   
-  
-
-
-
-  #Now we open and prepare the necessary files
-  #Open and read the model info file from Alex
-
-  #dt = [(str('name'),'S5'),(str('acc'),float),(str('z'),float),
-  #  (str('h'),float),(str('lAcc'),float)]
-  #  #need str() as genfromtxt has limited unicode support
-
-  
-  dt = [ (str('name'), 'S4'), (str('acc'), float), (str('z'), float),
-         (str('h'), float), (str('lAcc'), float), (str('pul'), 'S20'),
-         (str('cyc'), int), (str('comm'), 'S200') ]
-
-  #init = np.genfromtxt(modelDirectory+'MODELS2.txt', dtype = dt)
-  init = np.genfromtxt(modelDirectory+'MODELS2.txt', dtype = dt, 
-    delimiter=[4,15,8,8,10,20,10,200] )
- 
-
-
-
-
+  #And create the data storage lists
   dbVals = []
-  
-  #summHead = 'model bursts acc z h lacc/ledd bTime u_bTime pLum u_pLum fluence u_fluence tau u_tau tDel u_tDel conv u_conv rise10 u_rise10 rise25 u_rise25 PLawF0 PLawT0 PLawTs PLawAlpha PLawFp u_PLawF0 u_PLawT0 u_PLawTs u_PLawAlpha u_PLawFp PLawRCSQ exp1F0 u_exp1F0 exp1T0 u_exp1T0 exp1Tau u_exp1Tau exp1Fp u_exp1Fp exp1RCSQ superEddington Flag'
   summVals = []
   
   #---------------------------------------------------------------------------#
@@ -1677,16 +1553,7 @@ def analysis(keyTable, modelDir, outputDir, notAnalysable = [], twinPeaks = [], 
     'uFluence','tau','uTau','tDel','uTDel','conv','uConv','r1090','uR1090',
     'r2590','uR2590','singAlpha','uSingAlpha','singDecay','uSingDecay','alpha',
     'uAlpha','flag']          
-  """
-  summHead=['model','num','acc','z','h','lAcc','pul','cyc','burstLength',
-    'uBurstLength','peakLum','uPeakLum','persLum','uPersLum','fluence',
-    'uFluence','tau','uTau','tDel','uTDel','conv','uConv','r1090','uR1090',
-    'r2590','uR2590','plawF0','plawT0','plawTs','plawAl','plawFp','plawUF0',
-    'plawUT0','plawUTs','plawUAl','plawUFp','plawRedChi','exp1F0','exp1T0',
-    'exp1Tau','exp1Fp','exp1UF0', 'exp1UT0','exp1UTau','exp1UFp','exp1RedChi',
-    'singAlpha','uSingAlpha','singDecay','uSingDecay','alpha','uAlpha','flag',
-    'regime'] 
-  """
+
 
   dbHead = ['model', 'burst','bstart','btime','fluence','peakLum','persLum',
      'tau','tdel','conv','t10','t25','t90','fitAlpha','fitDecay','alpha']

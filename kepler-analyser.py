@@ -29,29 +29,37 @@ How to use me:
 """
 import numpy as np
 import sys
+import os   
 
 from model_analysis import analysis
 
 # Set this variable to be the directory where you would like the output
-# to go. The directroy structure will be made to accomodate all the bursts
+# to go. The directroy structure will be made to accomodate all the bursts.
+# All data will go in a subdirectory called "bursts"
 # It will resemble:
 #  outputDir
-#   |>runId1
-#     |>1.data #burst1
-#     |>2.data #burst2
-#     |>3.data #burst3
-#     |>mean.data #mean lightcurve
-#   |>runId2
-#   |>db.csv    #information for each separated burst
-#   |>summ.csv  #mean burst information
-outputDir = "/home/nathanael/xray/foo"
+#   |>bursts
+#     |>runId1
+#       |>1.data #burst1
+#       |>2.data #burst2
+#       |>3.data #burst3
+#       |>mean.data #mean lightcurve
+#     |>runId2
+#       |>1.data #burst1
+#       |>2.data #burst2
+#       |>3.data #burst3
+#       |>mean.data #mean lightcurve
+#     ...
+#     |>db.csv    #information for each separated burst
+#     |>summ.csv  #mean burst information
+outputDir = "./output/" #include trailing slash
 
 
 #Set this variable to be the directory where the models will be found
 #Models should be in ASCII format with their filenames ending as .data
 #The name of the file should be identical to the name they are given in 
 #the text file containing initial conditions
-inputDir = "/home/nathanael/xray/bar"
+inputDir = "./modelfiles/" #include trailing slash
 
 
 #Here is where we read in the initial conditions table. I have used numpy's
@@ -71,8 +79,7 @@ dt = [ (str('name'), 'S4'), (str('acc'), float), (str('z'), float),
          (str('h'), float), (str('lAcc'), float), (str('pul'), 'S20'),
          (str('cyc'), int), (str('comm'), 'S200') ]
 
-  #init = np.genfromtxt(modelDirectory+'MODELS2.txt', dtype = dt)
-keyTable = np.genfromtxt(modelDirectory+'MODELS2.txt', dtype = dt, 
+keyTable = np.genfromtxt('./modelfiles/MODELS2.txt', dtype = dt, 
   delimiter=[4,15,8,8,10,20,10,200] )
 
 #Finally you can set any models to ignore or flag. There are three arrays for 
@@ -82,19 +89,38 @@ keyTable = np.genfromtxt(modelDirectory+'MODELS2.txt', dtype = dt,
 # stableTrans   : Use this if a transition to stable burning leads to 
 #                 analysis difficulties
 
-notAnalysable = [1,2,228,233,235,257,258,259,260,261,331]
-twinPeaks     = []
-stableTrans   = []
+noExist = [1,2,228,233,235,257,258,259,260,261,331]
+
+notAnalysable = ['a324', 'a325','a326'] + ['a%i' % ii for ii in noExist]
+twinPeaks     = ['a76','a281','a282','a362','a363','a364','a366','a387','a400',
+    'a401','a402','a403','a408'] + ['a%i' % ii for ii in xrange(410,422)]
+stableTrans   = ['a232']
 
 
 def main( overwrite = False ):
-  buildDirectoryStructure(overwrite = overwrite)
-  analysis(keyTable, inputDir, outputDir, notAnalysable = notAnalysable,
-    twinPeaks = twinPeaks, stableTrans = stableTrans)
+    buildDirectoryStructure(overwrite = overwrite)
+    analysis(keyTable, inputDir, outputDir, notAnalysable = notAnalysable,
+        twinPeaks = twinPeaks, stableTrans = stableTrans)
     
 
 def buildDirectoryStructure(overwrite = False):
+    """
+    """
+    #Set whether or not paths can be overwritten, risking overwrites
+    mkdir = os.mkdir if overwrite == True else safeMakeDir
+    mkdir(outputDir+"bursts")
+    for name in keyTable["name"]:
+        mkdir(outputDir + r"bursts/" + name)
+    return True
     
+
+def safeMakeDir(path):
+    assert not os.path.exists(dir), ("Continuing would use an already existing"+
+        " directory, aborting. Use the -w flag to use existing paths (risks "+
+        "overwriting files.")
+    os.mkdir(path)
+    return True
+
 
 if __name__ == "__main__":
     if "-w" in sys.argv:
