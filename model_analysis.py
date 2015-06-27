@@ -983,6 +983,8 @@ def intervalAvg(times, lums, rads, interval=0.125):
 ###############################################################################
 def findStable():
   '''
+  NOTE: OBSOLETE: LOOKS RELIES ON OLD HARD-CODED DIRECTORIES
+  
   Return a list of burners that have a burning transtion
 
   findStable()
@@ -1331,40 +1333,37 @@ def separate(burstTime, burstLum, burstRad, modelID, outputDirectory):
 ###############################################################################
 
 
-def analysis():
+def analysis(keyTable, modelDir, outputDir, notAnalysable = [], twinPeaks = [], stableTrans = []):
   '''
+  analysis(keyTable, modelDir, outputDir,  notAnalysable = [], twinPeaks = [], stableTrans = []):
+  
+  
+  
+  
   #This program will analyse all the rebinned data files to produce a database of
   #tau,tdel,pflux and fluence values
   #It will also produce a mean lightcurve for each source 
   #
   #Jul 2012 - added code to redshift Lacc/Ledd
   '''
-  modelDirectory = '/home/nat/xray/models-data/models/'
-  outputDirectory = '/home/nat/xray/models-data/processed/'
-
-  #First, we define a list of the odd bursters
-  #Bursts that have a large duration but are also odd are preferentially placed
-  #in another descriptor
-  noExist = [2,228,233,235,257,258,259,260,261,331] # the model is non-existant
-  noEntry = [1] #no entry in MODELS.txt
-
-  bad = np.array(noEntry + noExist, dtype=int) 
-
-  #1 doesn't have an entry in MODELS.txt
+  #convert keywords to their variable names
+  modelDirectory = modelDir
+  outputDirectory = outputDir
+  init = keyTable
   
-  allModelIDs = np.arange(1,475,dtype=int)
-  additionalModels = ['a5d'] #for models added to analysis
+  #Process the model initial conditions table
+  modelIDs = [ name.strip() for name in init['name'] ]
+  strip = lambda x: x.strip()
+  name = np.array(map(strip, init['name']))
+  acc = init['acc']
+  z = init['z']
+  h = init['h']
+  lAcc = init['lAcc']
+  pul = np.array(map(strip, init['pul']))
+  cyc = init['cyc']
+  comm = np.array(map(strip, init['comm']))
   
-  goodModelIDs = (['a'+str(ii) for ii in allModelIDs if ii not in bad] + 
-    additionalModels)
-
-
-  stableTrans = ['a232']
-  twinPeaks = ['a76','a281','a282','a362','a363','a364','a366','a387','a400',
-    'a401','a402','a403','a408'] + ['a%i' % ii for ii in xrange(410,422)]
-    #I am starting to think that we should just ignore z=20% and 10% from
-    #all the analysis, are these twin peaks or just shocks, or a combination?
-  notAnalysable = ['a324', 'a325','a326']
+  
 
 
 
@@ -1384,24 +1383,10 @@ def analysis():
   init = np.genfromtxt(modelDirectory+'MODELS2.txt', dtype = dt, 
     delimiter=[4,15,8,8,10,20,10,200] )
  
-  strip = lambda x: x.strip()
-
-  name = np.array(map(strip, init['name']))
-  acc = init['acc']
-  z = init['z']
-  h = init['h']
-  lAcc = init['lAcc']
-  pul = np.array(map(strip, init['pul']))
-  cyc = init['cyc']
-  comm = np.array(map(strip, init['comm']))
 
 
-#  name,acc,z,h,lAcc,pul,cyc,com = np.genfromtxt(modelDirectory+'MODELS_EDIT.txt',
-#    skip_header=2, unpack=True, delimiter=',')# dtype=['a4', np.float64, np.float, np.float, np.float, 'a6',np.int,'a100'])#, dtype=[str,float,float,float,float,str,float,str])
 
-  #Open the output files
 
-   #dbHead = 'model burst bstart btime fluence peakLum persLum tau tdel conv t10 t25 t90 fitAlpha fitDecay'
   dbVals = []
   
   #summHead = 'model bursts acc z h lacc/ledd bTime u_bTime pLum u_pLum fluence u_fluence tau u_tau tDel u_tDel conv u_conv rise10 u_rise10 rise25 u_rise25 PLawF0 PLawT0 PLawTs PLawAlpha PLawFp u_PLawF0 u_PLawT0 u_PLawTs u_PLawAlpha u_PLawFp PLawRCSQ exp1F0 u_exp1F0 exp1T0 u_exp1T0 exp1Tau u_exp1Tau exp1Fp u_exp1Fp exp1RCSQ superEddington Flag'
@@ -1412,7 +1397,7 @@ def analysis():
   #                        BEGIN ANALYSIS LOOP                                #
   #---------------------------------------------------------------------------#
   #---------------------------------------------------------------------------#
-  for modelID in goodModelIDs:
+  for modelID in modelIDs:
     '''
     '''
     if not os.path.exists(outputDirectory+'bursts/'+str(modelID)):
@@ -1521,16 +1506,7 @@ def analysis():
       headString = 'time luminosity u_luminosity radius u_radius'
       np.savetxt(fname, saveArray, delimiter=' ',newline='\n',header=headString)
       
-      '''
-      #~~~Observational Interval Mean~~~#
-      obst, obsl, obsr, obsdl, obsdr = intervalAvg(allTims, allLums, allRads,
-        0.125)
-      fname = outputDirectory+'bursts/%s/obsmean.data' % (x['burstID'])
-      print('writing burst to %s' % fname)
-      saveArray = zip(obst, obsl, obsdl, obsr, obsdr)
-      headString = 'time luminosity u_luminosity radius u_radius'
-      np.savetxt(fname, saveArray, delimiter=' ',newline='\n',header=headString)
-      '''
+
         
       #----------------------------#
       # Save burst database values #
@@ -1602,15 +1578,6 @@ def analysis():
       r2590 = np.mean(t25t90)
       uR2590 = np.std(t25t90)
       
-      #old rise time method
-      #t10 = np.mean(x['t10'])
-      #uT10 = np.std(x['t10'])
-      
-      #t25 = np.mean(x['t25'])
-      #uT25 = np.std(x['t25'])
-      
-      #t90 = np.mean(x['t90'])
-      #uT90 = np.std(x['t90'])
 
       if x['num']>=2: 
         tDel = np.mean(x['tdel'][1:])
@@ -1622,71 +1589,6 @@ def analysis():
         uTDel = 0.
         alpha = 0.
         uAlpha = 0.
-      """
-      #--------------------#
-      # Fits to burst tail #
-      #--------------------#
-      
-      if x['num'] >= 3:
-        #only fit if there are 3+ bursts
-        pParams, pData, eParams, eData = burstFits(mt,ml,mdl=mdl)
-        ###
-        plawF0 = pParams['F0'].value
-        plawT0 = pParams['t0'].value
-        plawTs = pParams['ts'].value
-        plawAl = pParams['al'].value
-        plawFp = pParams['Fp'].value
-        plawUF0 = pParams['F0'].stderr
-        plawUT0 = pParams['t0'].stderr
-        plawUTs = pParams['ts'].stderr
-        plawUAl = pParams['al'].stderr
-        plawUFp = pParams['Fp'].stderr
-        plawRedChi = pData['redchi']
-        ###
-        exp1F0  = eParams['F0'].value
-        exp1T0  = eParams['t0'].value
-        exp1Tau = eParams['tau'].value
-        exp1Fp  = eParams['Fp'].value
-        exp1UF0  = eParams['F0'].stderr
-        exp1UT0  = eParams['t0'].stderr
-        exp1UTau = eParams['tau'].stderr
-        exp1UFp  = eParams['Fp'].stderr
-        exp1RedChi = eData['redchi']
-
-      else:
-      #~~~ Cannot perform a fit ~~~#
-        #PLaw Parameters
-        plawF0 = 0.
-        plawT0 = 0.
-        plawTs = 0.
-        plawAl = 0.
-        plawFp = 0.
-        
-        plawUF0 = 0.
-        plawUT0 = 0.
-        plawUTs = 0.
-        plawUAl = 0.
-        plawUFp = 0.
-
-        plawRedChi = 0.
-
-        #exp1 parameters
-        exp1F0 = 0.
-        exp1T0 = 0.
-        exp1Tau = 0.
-        exp1Fp = 0.
-        
-        exp1UF0 = 0.
-        exp1UT0 = 0.
-        exp1UTau = 0.
-        exp1UFp = 0.
-
-        exp1RedChi = 0.
-      
-      #~~~~~~~~~~~~~~~~~~~#
-      # FITTING COMPLETED #
-      #~~~~~~~~~~~~~~~~~~~#
-    """
     #No bursts case!!
     else:
       #set all the things to zero!!
@@ -1724,185 +1626,6 @@ def analysis():
       singAlpha = 0
       uSingAlpha = 0
 
-      """
-      ### FITS ###
-      plawF0 = 0.
-      plawT0 = 0.
-      plawTs = 0.
-      plawAl = 0.
-      plawFp = 0.
-      
-      plawUF0 = 0.
-      plawUT0 = 0.
-      plawUTs = 0.
-      plawUAl = 0.
-      plawUFp = 0.
-
-      plawRedChi = 0.
-
-      exp1F0 = 0.
-      exp1T0 = 0.
-      exp1Tau = 0.
-      exp1Fp = 0.
-      
-      exp1UF0 = 0.
-      exp1UT0 = 0.
-      exp1UTau = 0.
-      exp1UFp = 0.
-
-      exp1RedChi = 0.
-      """
-
-    """
-    #---------------# 
-    # Bursting Mode #
-    #---------------#
-    '''
-    A large body of work suggests that different accretion rates cause 
-    different bursting regimes to appear (e.g. Narayan & Heyl, 2003; 
-    Fujimoto et al. 1984). The regime is also sensitive to the composition of
-    the accreted fuel. We look for observational signs of particular regime
-    to try to categorise the bursts.
-
-    As background, the regimes proposed by Narayan & Heyl (2003) are:
-    (Table adapted from Galloway 08, acc-rates as a fraction of (dm/dt)_edd)
-
-    Case  dm/dt    steady-burning    burst-fuel
-    5     <0.01    none              H/He
-    4     0.01-0.1 H                 He
-    3     0.1-1.0  H                 H/He
-    2     ~1.0     H/He              H/He
-    1     >1.0     H/He              none
-
-    We identify five loosely equivalent observtional cases
-    
-    Case Observable
-    1    Stable Burning
-    2    Recurrence time similar to burst length
-    3    Bursts below Ledd, recurrence time large compared to burst duration
-    4    Ledd reached
-    5    No bursts
-    6    Could not identify case
-
-    How we identify these bursts like so
-    (Parameters need tuning)
-
-    1. Check regularity compared to burst length
-       if bursts are very regular  ------> Class 2
-       bursts are not vey regular  ------> Goto 2
-
-    2. Is the accretion rate high
-       If so, we then have stable burning ------> Class 1
-       If not, we could have type 3,4,5   ------> Goto 3
-
-    3. How many bursts are there?
-       3+          ------> Caclulate PRE by chi-squared
-                           Goto 4A
-       1 or 2      ------> Calculate PRE by chi-square, assume 2% errors
-                           Go to 4A
-
-       None        ------> Are there any bursts?
-                           No?  Goto 4B
-                                
-    4A. Calculate likelihood burst has flat top
-        95% chance of PRE?                 ------> Class 4
-        <95% chance of PRE?                ------> Goto 5A
-    
-    4B. No bursts! Is it due to low accretion
-        Is Lacc/Ledd <= 0.02                ------> Class 5
-        High Lacc/Ledd? That's weird       ------> Class 6
-
-
-    5A. Is the recurrence time low enough to indicate mixed H/He?
-        tDel < 3.5 days                   ------> Class 3
-        tDel > 3.5 days                   ------> Goto 6A
-
-    6A. Probably have low accretion stable state
-        Is Lacc/Ledd < 0.02               -------> Class 5
-        If not, classifcation broken      -------> Class 6
-    
-
-    '''
-    
-
-    #obtain the location of this pulse in model_info.txt
-    loc = np.argmax(name == str(modelID))
-
-    regime = int(0)
-
-    #first up, things that could set regime to 2
-    #The bursts are of a similar length to the recurrence time (same mag)
-    #We include where there are regular bursts and then these change
-    #to stable burning
-    if tDel < 10*burstLength and tDel != 0.:
-      regime = 2
-    
-    #But if we have high accretion and no tDel/high tDel, we probably have 
-    #stable burning 
-    elif lAcc[loc] > 1.0:
-      regime = 1
-    
-    #Cases 3,4,5
-    else:
-    #Now look for PRE, by seeing how flat the burst top is, this identifies
-    #case 2 from case 3 
-      if x['num'] != 0:
-        tMinVals = xrange(-3,1) # fit for intervals [-3,2], [-2,3], [-1,4]
-        tMaxVals = xrange(2, 6) # and [0,5], select best prob
-        probs = []
-        for (tMin,tMax) in izip(tMinVals,tMaxVals):
-          if x['num'] > 2:
-            #we need a mean burst to do this (with errors)
-            tMinInd = bn.nanargmax(mt>tMin) - 1
-            tMaxInd = bn.nanargmax(mt>tMax)
-            lsFitVals = ml[tMinInd:tMaxInd]
-            dlsFitVals = mdl[tMinInd:tMaxInd]
-     
-            ok = np.nonzero(dlsFitVals>1e33)[0]
-            lsFitVals = lsFitVals[ok]
-            dlsFitVals = dlsFitVals[ok]
-
-          else:
-            #use burst 0 or 1, assume 1% error (seems to work well)
-            ts = x['tims'][x['num']-1]
-            ls = x['lums'][x['num']-1]
-            tMinInd = bn.nanargmax(ts>tMin) - 1
-            tMaxInd = bn.nanargmax(ts>tMax)
-            tsFitVals = ts[tMinInd:tMaxInd]
-            lsFitVals = ls[tMinInd:tMaxInd]
-            dlsFitVals = 0.01*lsFitVals
-
-          sy = sum(lsFitVals/dlsFitVals**2)
-          s = sum(1/dlsFitVals**2)
-          m = sy/s
-          cs = sum( ((lsFitVals - m)/dlsFitVals)**2 )
-          df = len(lsFitVals) - 1
-          #see if it has a flat top, if so, PRE and case 2
-          prob = chisqprob(cs,df)
-          probs.append(prob)
-
-        if max(probs) >  0.95:
-          regime = 4
-        #Type 3 bursts have shorter recurrence times than type 2
-        #Model a15 (PRE) has tdel = 2 days, so we want a tDel < 2 days
-        
-        elif tDel < 2*24*3600 and tDel != 0:
-          regime = 3
-        #Low accretion rates and no PRE means regime 1  
-        elif lAcc[loc] <= 0.02:
-          regime = 5
-        else:
-          regime = 6
-
-      else:
-        #No bursts!!
-        if lAcc[loc] < 0.02:
-        # the reason for so few bursts is low accretion
-          regime = 5
-        else:
-          regime = 6
-
-    """
 
     
     #---------------------------#
@@ -1938,26 +1661,6 @@ def analysis():
                      uR1090,
                      r2590,
                      uR2590,
-                    # plawF0,
-                    # plawT0,
-                    # plawTs,
-                    # plawAl,
-                    # plawFp,
-                    # plawUF0, 
-                    # plawUT0,
-                    # plawUTs,
-                    # plawUAl,
-                    # plawUFp,
-                    # plawRedChi,
-                    # exp1F0,
-                    # exp1T0,
-                    # exp1Tau,
-                    # exp1Fp,
-                    # exp1UF0, 
-                    # exp1UT0,
-                    # exp1UTau,
-                    # exp1UFp,
-                    # exp1RedChi,
                      singAlpha,
                      uSingAlpha,
                      singDecay,
@@ -1965,9 +1668,8 @@ def analysis():
                      alpha,
                      uAlpha,
                      flag,
-                    # regime
                      ))
-  #save shit
+  #save data
 
 
   summHead=['model','num','acc','z','h','lAcc','pul','cyc','burstLength',
