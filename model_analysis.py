@@ -927,7 +927,7 @@ def findStable():
   transition = []
   for modelID in goodModelIDs:
     print(modelID)
-    loadFilename = modelDirectory+'xrb'+str(modelID)+'.data'
+    loadFilename = modelDirectory+str(modelID)+'.data'
     burstTime,burstLum,burstRad = np.loadtxt(loadFilename, skiprows=1, 
       unpack=True)
     
@@ -1280,7 +1280,7 @@ def analysis(keyTable, modelDir, outputDir, notAnalysable = [], twinPeaks = [],
       os.mkdir(outputDirectory+'bursts/'+str(modelID))
     
 
-    loadFilename = modelDirectory+'xrb'+str(modelID)+'.data'
+    loadFilename = modelDirectory+str(modelID)+'.data'
     burstTime,burstLum,burstRad = np.loadtxt(loadFilename, skiprows=1, 
       unpack=True)
     #remove duplicate times and where lum <= 0

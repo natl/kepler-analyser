@@ -38,10 +38,27 @@ You'll need the following Python packages too
 
 How should I format my input?
 
-
+ * Model files should be in ASCII format seperated by whitespace. They should 
+   have the filename specified by there identifier in the initial conditions
+   file, with the suffix ".data". They should all be located in the same 
+   directory.
+ * The initial conditions file is a bit more tricky. The file
+   *kepler-analysis.py* will need to be edited as this files format changes.
+   It requires the following columns:
+   - name : model filename without .data extension
+   - acc  : accretion rate
+   - z    : metallicity
+   - h    : hydrogen fraction
+   - pul  : comment line describing the lightcurve (may be empty, but must 
+     exist). The comments on this line will be carried through to the output table
+   - cyc  : Number of numerical steps simulated 
+   - comm : area for comments
 
 
 How will I get my output?
 
+Output is placed in the specified output directory in the *bursts* subdirectroy.
+The file *bursts/summ.csv* summarises each model, and the file *summ/db.csv*
+contains the information for each separated burst
 
 

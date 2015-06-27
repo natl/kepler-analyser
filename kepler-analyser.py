@@ -75,12 +75,12 @@ inputDir = "./modelfiles/" #include trailing slash
 # cyc  : Number of numerical steps simulated 
 # comm : area for comments
 
-dt = [ (str('name'), 'S4'), (str('acc'), float), (str('z'), float),
+dt = [ (str('name'), 'S7'), (str('acc'), float), (str('z'), float),
          (str('h'), float), (str('lAcc'), float), (str('pul'), 'S20'),
          (str('cyc'), int), (str('comm'), 'S200') ]
 
 keyTable = np.genfromtxt('./modelfiles/MODELS2.txt', dtype = dt, 
-  delimiter=[4,15,8,8,10,20,10,200] )
+  delimiter=[7,15,8,8,10,20,10,200] )
 
 #Finally you can set any models to ignore or flag. There are three arrays for 
 #this and each requires a string with the model name
