@@ -91,10 +91,12 @@ keyTable = np.genfromtxt('./modelfiles/MODELS.txt', dtype = dt,
 
 noExist = [1,2,228,233,235,257,258,259,260,261,331]
 
-notAnalysable = ['a324', 'a325','a326'] + ['a%i' % ii for ii in noExist]
-twinPeaks     = ['a76','a281','a282','a362','a363','a364','a366','a387','a400',
-    'a401','a402','a403','a408'] + ['a%i' % ii for ii in xrange(410,422)]
-stableTrans   = ['a232']
+notAnalysable = ( ['xrba324', 'xrba325','xrba326'] +
+    ['xrba%i' % ii for ii in noExist] )
+twinPeaks = ['xrba76','xrba281','xrba282','xrba362','xrba363','xrba364',
+    'xrba366','xrba387','xrba400','xrba401','xrba402','xrba403',
+    'xrba408'] + ['xrba%i' % ii for ii in xrange(410,422)]
+stableTrans = ['xrba232']
 
 
 def main( overwrite = False ):
@@ -110,7 +112,7 @@ def buildDirectoryStructure(overwrite = False):
     mkdir = os.mkdir if overwrite == True else safeMakeDir
     mkdir(outputDir+"bursts")
     for name in keyTable["name"]:
-        mkdir(outputDir + r"bursts/" + name)
+        mkdir(outputDir + r"bursts/" + name.strip())
     return True
     
 

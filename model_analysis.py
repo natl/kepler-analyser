@@ -1255,6 +1255,7 @@ def analysis(keyTable, modelDir, outputDir, notAnalysable = [], twinPeaks = [],
   #Process the model initial conditions table
   modelIDs = [ name.strip() for name in init['name'] ]
   modelIDs = list( set(modelIDs) - set(notAnalysable) )
+
   strip = lambda x: x.strip()
   name = np.array(map(strip, init['name']))
   acc = init['acc']
