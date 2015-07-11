@@ -79,7 +79,7 @@ dt = [ (str('name'), 'S7'), (str('acc'), float), (str('z'), float),
          (str('h'), float), (str('lAcc'), float), (str('pul'), 'S20'),
          (str('cyc'), int), (str('comm'), 'S200') ]
 
-keyTable = np.genfromtxt('./modelfiles/MODELS2.txt', dtype = dt, 
+keyTable = np.genfromtxt('./modelfiles/MODELS.txt', dtype = dt, 
   delimiter=[7,15,8,8,10,20,10,200] )
 
 #Finally you can set any models to ignore or flag. There are three arrays for 
@@ -115,7 +115,7 @@ def buildDirectoryStructure(overwrite = False):
     
 
 def safeMakeDir(path):
-    assert not os.path.exists(dir), ("Continuing would use an already existing"+
+    assert not os.path.exists(path),("Continuing would use an already existing"+
         " directory, aborting. Use the -w flag to use existing paths (risks "+
         "overwriting files.")
     os.mkdir(path)

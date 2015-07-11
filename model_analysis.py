@@ -1254,6 +1254,7 @@ def analysis(keyTable, modelDir, outputDir, notAnalysable = [], twinPeaks = [],
   
   #Process the model initial conditions table
   modelIDs = [ name.strip() for name in init['name'] ]
+  modelIDs = list( set(modelIDs) - set(notAnalysable) )
   strip = lambda x: x.strip()
   name = np.array(map(strip, init['name']))
   acc = init['acc']
@@ -1276,9 +1277,8 @@ def analysis(keyTable, modelDir, outputDir, notAnalysable = [], twinPeaks = [],
   for modelID in modelIDs:
     '''
     '''
-    if not os.path.exists(outputDirectory+'bursts/'+str(modelID)):
-      os.mkdir(outputDirectory+'bursts/'+str(modelID))
-    
+    #if not os.path.exists(outputDirectory+'bursts/'+str(modelID)):
+    #  os.mkdir(outputDirectory+'bursts/'+str(modelID))
 
     loadFilename = modelDirectory+str(modelID)+'.data'
     burstTime,burstLum,burstRad = np.loadtxt(loadFilename, skiprows=1, 
