@@ -89,11 +89,11 @@ keyTable = np.genfromtxt('./modelfiles/MODELS.txt', dtype = dt,
 # stableTrans   : Use this if a transition to stable burning leads to 
 #                 analysis difficulties
 
-noExist = [1,2,228,233,235,257,258,259,260,261,331]
+noExist = ['001','002','228','233','235','257','258','259','260','261','331']
 
 notAnalysable = ( ['xrba324', 'xrba325','xrba326'] +
-    ['xrba%i' % ii for ii in noExist] )
-twinPeaks = ['xrba76','xrba281','xrba282','xrba362','xrba363','xrba364',
+    ['xrba%s' % ii for ii in noExist] )
+twinPeaks = ['xrba076','xrba281','xrba282','xrba362','xrba363','xrba364',
     'xrba366','xrba387','xrba400','xrba401','xrba402','xrba403',
     'xrba408'] + ['xrba%i' % ii for ii in xrange(410,422)]
 stableTrans = ['xrba232']
