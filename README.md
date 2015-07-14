@@ -61,4 +61,7 @@ Output is placed in the specified output directory in the *bursts* subdirectroy.
 The file *bursts/summ.csv* summarises each model, and the file *summ/db.csv*
 contains the information for each separated burst
 
+Show me an example.
 
+The script kepler-analyser-example.py has been configured to work with the
+files in example\_data, and will output the results to example\_output.
