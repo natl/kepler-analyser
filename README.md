@@ -3,7 +3,8 @@ Welcome to the Kepler model analysis routine
 
 Author: Nathanael Lampe
 
-Note: This is currently a work in progress
+Note: This code should work, but handle it with care. Asking 
+questions is encouraged.
 
 What is it?
 
@@ -58,8 +59,8 @@ How should I format my input?
 How will I get my output?
 
 Output is placed in the specified output directory in the *bursts* subdirectroy.
-The file *bursts/summ.csv* summarises each model, and the file *summ/db.csv*
-contains the information for each separated burst
+The file *bursts/summ.csv* summarises each model, and the file
+*bursts/db.csv* contains the information for each separated burst
 
 Show me an example.
 
