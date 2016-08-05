@@ -21,9 +21,8 @@ directory) and a file with a "key table" describing the parameters of each model
 accommodated by making a subclass: see for example ElmoGrid.
 
 TODO:
-- light curve fitting does not work in model_analysis.fitTail(); problem with lmfit?
 - cut out accretion dips?
-- notAnalysable, twinPeaks, stableTrans not implemented in current version.
+- Work out why lmfit doesn't work on certain configurations
 """
 
 from __future__ import division, unicode_literals, print_function
@@ -43,14 +42,11 @@ import model_analysis
 # this and each requires a string with the model name
 # notAnalysable : Model will be skipped for any reason
 # twinPeaks     : Model will be flagged as a twin peaked burst
-# stableTrans   : Use this if a transition to stable burning leads to
-#                 analysis difficulties
 
 notAnalysable = ['xrba324', 'xrba325','xrba326']
 twinPeaks = ['xrba076','xrba281','xrba282','xrba362','xrba363','xrba364',
     'xrba366','xrba387','xrba400','xrba401','xrba402','xrba403',
     'xrba408'] + ['xrba%i' % ii for ii in xrange(410,422)]
-stableTrans = ['xrba232']
 
 class ModelGrid:
     """
