@@ -27,7 +27,7 @@ grid.analyse_all()
 ```
 
 Do you have lightcurves in a different format? You can write your own reader for them by inheriting from the
-`kepler_analysis.ModelGrid` class
+`kepler_analysis.ModelGrid` class. You can also look at `example.py`, which shows the minimal code necessary to use the analyser in a script
 
 **What is it?**
 

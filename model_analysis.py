@@ -201,7 +201,7 @@ def fitTail(time, lumin, dlumin, params, method='power'):
               'chisqr'       : result.chisqr,       #chi-square:
               'redchi'       : result.redchi}       #reduced chi-square:
 
-  return params, fitData
+  return result.params, fitData
 
 #####~~~~~~~~~~~~~~~~~~~~~~~~ Fitting routine ~~~~~~~~~~~~~~~~~~~~~~~~~~~~#####
 
