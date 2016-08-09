@@ -43,7 +43,7 @@ properties for each burst.
 This script was designed for *Python 2.7*
 
 You'll need the following Python packages too
- * lmfit
+ * lmfit (> v0.9)
  * Scipy
  * Numpy
  * Bottleneck
