@@ -81,7 +81,8 @@ class ModelGrid:
         """
         base_dir: all files are in (subdirectories of) this directory
         base_name: all problem names are base_name followed by a number
-        parameter_filename: name of the file in base_dir that contains the parameter values for each run
+        parameter_filename: name of the file in base_dir that contains the
+                            parameter values for each run
         output_dir: location of output files
         notAnalysable: manually categorize models
         twinPeaks: manually categorize models

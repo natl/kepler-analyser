@@ -1063,7 +1063,100 @@ def separate(burstTime, burstLum, burstRad, modelID, outputDirectory):
 class ModelAnalysis:
     """Analyse a model run of multiple bursts
 
-    TODO: Documentation
+    m = ModelAnalysis(modelID, time, lum, radius)
+
+    Example Usage:
+        key_table = {...}  # Load in the key table
+        ma = ModelAnalysis(modelID, burstTime, burstLum, burstRad)
+        flag = ma.get_flag()
+        print('model: %s; flag: %i' % (modelID, flag))
+        ma.separate("separated")
+
+        dbVals = ma.get_burst_values()
+        ma.get_mean_lcv("separated")
+        summVals = ma.get_mean_values(
+            {k: v[index] for k, v in self.key_table.items()})
+
+    This class takes a model id code, and matching time, luminosity and radius
+    arrays, and separates them into individal bursts, as well as producing a
+    mean lightcurve and mean burst parameters.
+
+    Input:
+        args:
+        - modelID: string/int ID of the model
+        - time: 1-D array of times
+        - lum:  1-D array of burst luminosities, specified at times in t
+        - radius: 1-D array of burst radius profiles
+
+    Returns:
+        m: Class Object
+        Default members of m:
+            m.separated = {'num': 0,
+                           'endBurst': False,
+                           'burstID': modelID}
+                endBurst is True if lightcurve ends mid-burst
+        Member Functions:
+            m.clean()
+                Runs by default when constructor is called.
+                Clean the light curve from duplicate times
+                (time step smaller than numerical precision),
+                negative and super-Eddington luminosities.
+            m.separate(output_dir)
+                Locate bursts and separate the individual burst light curves
+                Updates m.separated with lightcurve parameters
+                Lightcurves are saved in output_dir
+                These are:
+                    {'num','pTimes','bstart','bend','peakLum','persLum','tdel',
+                    'tau','fluen','lums','tims','rads','conv','length','t10',
+                    't25','t90','upTurn','fitAlpha','fitDecay','endBurst'}
+
+                    All dictionary members are lists with 'num' members, except
+                    'num' which is an integer.
+
+                    'num': int, number of separated bursts
+                    'pTimes': array of times of burst peaks
+                    'bstart': array of times when burst starts
+                    'bend': array of times when burst ends
+                    'peakLum': array of peak luminosities for each burst
+                    'persLum': array of persistent luminosities for each burst
+                    'tdel': recurrence time of each burst (where possible)
+                    'tau': array of tau values for each burst
+                    'fluen': array of fluences of each burst
+                    'lums': (NOTE 1) array of luminosity arrays
+                    'tims': (NOTE 1) array of time arrays
+                    'rads': (NOTE 1) array of radius arrays
+                    'conv': array of convexities in each burst
+                    'length': time duration of each burst
+                    't10': array containing the time where each burst rise hits
+                           10pct of peak luminosity
+                    't25': array containing the time where each burst rise hits
+                           25pct of peak luminosity
+                    't90': array containing the time where each burst rise hits
+                           90pct of peak luminosity
+                    'upTurn': flag to indicate if burst has an upturn
+                    'fitAlpha': array of alpha values for each burst
+                    'fitDecay': timescale for the exponential decay
+                    'endBurst': flag for whether burst is interrupted by the
+                                end of the file/input arrays
+
+                    NOTE 1: The list elements for these quantities are 1-D
+                            arrays. They give the time, luminosity and radius
+                            for each burst
+            m.get_flag(twinPeaks=False, notAnalysable=False)
+                Returns the flag corresponding to the analysis quality of this
+                burst, see m.get_flag.__doc__ for flags
+            m.get_alpha()
+                Calculates the alpha values
+            m.get_burst_values()
+                Get slightly nicer formatted burst parameters, not including
+                the time, luminosity and radius areas
+            m.get_mean_lcv(output_dir=None)
+                Get the mean lightcurve, specifiying the ouptut directory
+                where the mean lightcurve ought to be saved (None only returns)
+                the mean lc as an array
+            m.get_mean_values()
+                Returns the mean values for burst paramters, see
+                m.get_mean_values.__doc__ for column descriptions
     """
 
     def __init__(self, modelID, time, lum, radius):
@@ -1123,7 +1216,10 @@ class ModelAnalysis:
         return x
 
     def get_flag(self, twin_peaks=False, not_analysable=False):
-        """
+        """Get Analysis flags
+
+        ModelAnalysis.get_flag(twin_peaks=False, not_analysable=False)
+
         Flags are used to indicate where the model may be questionable.
         These are done in base 2. The flags are:
 
@@ -1199,10 +1295,15 @@ class ModelAnalysis:
                            x['alpha'][i]))
         return dbVals
 
-    def get_mean_lcv(self, output_dir):
+    def get_mean_lcv(self, output_dir=None):
         """
         Calculate the mean burst light curve, and save it to 'mean.data' in
-        output_dir
+        output_dir (if output_dir is specfied)
+
+        mean_lc = ModelAnalysis.get_mean_lcv(output_dir=None)
+        returns:
+            mean_lc: 2-D numpy array, columns are:
+                time, luminosity, u(luminosity), radius, u(radius)
         """
         x = self.separated
         burstTime = self.time
@@ -1225,19 +1326,60 @@ class ModelAnalysis:
                 allRads.append(burstRad[sInd:fInd])
 
             mt, ml, mr, mdl, mdr = avgParams(allTims, allLums, allRads)
-            fname = os.path.join(output_dir, self.modelID, 'mean.data')
-            print('writing burst to %s' % fname)
             saveArray = zip(mt, ml, mdl, mr, mdr)
-            headString = 'time luminosity u_luminosity radius u_radius'
-            np.savetxt(fname, saveArray, delimiter=' ', newline='\n',
-                       header=headString)
-
+            if output_dir is not None:
+                fname = os.path.join(output_dir, self.modelID, 'mean.data')
+                print('writing burst to %s' % fname)
+                headString = 'time luminosity u_luminosity radius u_radius'
+                np.savetxt(fname, saveArray, delimiter=' ', newline='\n',
+                           header=headString)
             return saveArray
 
     def get_mean_values(self, key_table):
         """
         Get mean burst parameters
-        key_table: keys for the specific model that is being analysed
+        Usage:
+            summ_vals: ModelAnalysis.get_mean_values(key_table)
+        args:
+            key_table: keys for the specific model that is being analysed
+
+        returns:
+            summ_vals: list of mean values, values are:
+                idx  value
+                00. modelID
+                01. number of bursts
+                02. accretion rate (from table)
+                03. metallicity (from table)
+                04. hydrogen fraction (from table)
+                05. accretion luminosity (from table)
+                06. pulse column (from table)
+                07. number of cycles (from table)
+                08. burstLength,
+                09. uBurstLength,
+                10. peakLum,
+                11. uPeakLum,
+                12. persLum,
+                13. uPersLum,
+                14. fluence,
+                15. uFluence,
+                16. tau,
+                17. uTau,
+                18. tDel,
+                19. uTDel,
+                20. conv,
+                21. uConv,
+                22. r1090,
+                23. uR1090,
+                24. r2590,
+                25. uR2590,
+                26. singAlpha,
+                27. uSingAlpha,
+                28. singDecay,
+                29. uSingDecay,
+                30. alpha,
+                31. uAlpha,
+                32. self.flag,
+                33. Q_b
         """
         x = self.separated
 
